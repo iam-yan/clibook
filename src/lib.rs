@@ -1,5 +1,6 @@
 mod parser;
 mod wordbook;
+mod deck;
 
 use std::fs;
 
