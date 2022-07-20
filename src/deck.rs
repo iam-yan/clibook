@@ -45,6 +45,10 @@ impl<'a> Backlog<'a> {
     // Deck of leve?
 }
 
+struct Tes {
+    a: u8,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,7 +130,7 @@ mod tests {
             },
         );
 
-        let b = Backlog::from_word_entries(&word_entries);
+        let mut b = Backlog::from_word_entries(&word_entries);
 
         match b.decks.get(&1) {
             Some(d) => {
@@ -137,11 +141,12 @@ mod tests {
             }
         }
 
-        match b.decks.get(&2) {
+        match b.decks.get_mut(&2) {
             Some(d) => {
                 assert_eq!(d.wordEntries.len(), 3);
-                if let Some(w) = d.wordEntries.get(0) {
-                    assert_eq!(w.hiragana, String::from("じどうしゃ"));
+                if let Some(w) = d.wordEntries.get_mut(0) {
+                    w.level
+                    // assert_eq!(word_entries.get(w.word.word()).unwrap().level, 3);
                 } else {
                     panic!();
                 }
