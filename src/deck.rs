@@ -54,7 +54,44 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gen_backlog_from_book() {
+    fn gen_backlog_from_word_entries() {
+        let mut word_entries = gen_word_entries();
+        let mut b = Backlog::from_word_entries(&mut word_entries);
+
+        match b.decks.get(&1) {
+            Some(d) => {
+                assert_eq!(d.wordEntries.len(), 2);
+            }
+            None => {
+                panic!();
+            }
+        }
+
+        match b.decks.get_mut(&2) {
+            Some(d) => {
+                assert_eq!(d.wordEntries.len(), 3);
+                if let Some(w) = d.wordEntries.get_mut(0) {
+                    assert!( ["自動車", "工場", "稼働"].contains(&w.word.word()));
+                } else {
+                    panic!();
+                }
+            }
+            None => {
+                panic!();
+            }
+        }
+
+        match b.decks.get(&3) {
+            Some(d) => {
+                assert_eq!(d.wordEntries.len(), 2);
+            }
+            None => {
+                panic!();
+            }
+        }
+    }
+
+    fn gen_word_entries() -> WordEntries {
         let fake_sentence_id = "123";
 
         let mut word_entries: WordEntries = HashMap::new();
@@ -130,38 +167,6 @@ mod tests {
             },
         );
 
-        let mut b = Backlog::from_word_entries(&mut word_entries);
-
-        match b.decks.get(&1) {
-            Some(d) => {
-                assert_eq!(d.wordEntries.len(), 2);
-            }
-            None => {
-                panic!();
-            }
-        }
-
-        match b.decks.get_mut(&2) {
-            Some(d) => {
-                assert_eq!(d.wordEntries.len(), 3);
-                if let Some(w) = d.wordEntries.get_mut(0) {
-                    // how to assert eq between a value with an union?
-                } else {
-                    panic!();
-                }
-            }
-            None => {
-                panic!();
-            }
-        }
-
-        match b.decks.get(&3) {
-            Some(d) => {
-                assert_eq!(d.wordEntries.len(), 2);
-            }
-            None => {
-                panic!();
-            }
-        }
+        word_entries
     }
 }
