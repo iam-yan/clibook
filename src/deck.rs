@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 pub struct Deck<'a> {
     pub level: u8,
-    pub wordEntries: Vec<&'a WordEntry>,
+    pub wordEntries: Vec<&'a mut WordEntry>, // Deck should have a method for update level
 }
 
 pub struct Backlog<'a> {
@@ -11,7 +11,7 @@ pub struct Backlog<'a> {
 }
 
 impl<'a> Backlog<'a> {
-    pub fn from_word_entries(word_entries: &WordEntries) -> Backlog {
+    pub fn from_word_entries(word_entries: &mut WordEntries) -> Backlog {
         // Create an empty mutable Backlog
         let mut b: Backlog = Backlog {
             decks: HashMap::new(),
@@ -130,7 +130,7 @@ mod tests {
             },
         );
 
-        let mut b = Backlog::from_word_entries(&word_entries);
+        let mut b = Backlog::from_word_entries(&mut word_entries);
 
         match b.decks.get(&1) {
             Some(d) => {
@@ -145,8 +145,7 @@ mod tests {
             Some(d) => {
                 assert_eq!(d.wordEntries.len(), 3);
                 if let Some(w) = d.wordEntries.get_mut(0) {
-                    w.level
-                    // assert_eq!(word_entries.get(w.word.word()).unwrap().level, 3);
+                    // how to assert eq between a value with an union?
                 } else {
                     panic!();
                 }
