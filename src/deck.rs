@@ -1,4 +1,4 @@
-use crate::wordbook::{Book, Word, WordEntries, WordEntry};
+use crate::wordbook::{WordEntries, WordEntry};
 use std::collections::HashMap;
 
 pub struct Deck<'a> {
@@ -45,13 +45,10 @@ impl<'a> Backlog<'a> {
     // Deck of leve?
 }
 
-struct Tes {
-    a: u8,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::wordbook::Word;
 
     #[test]
     fn gen_backlog_from_word_entries() {
@@ -71,7 +68,7 @@ mod tests {
             Some(d) => {
                 assert_eq!(d.wordEntries.len(), 3);
                 if let Some(w) = d.wordEntries.get_mut(0) {
-                    assert!( ["自動車", "工場", "稼働"].contains(&w.word.word()));
+                    assert!(["自動車", "工場", "稼働"].contains(&w.word.word()));
                 } else {
                     panic!();
                 }
