@@ -1,5 +1,5 @@
 use crate::deck::Deck;
-use crate::wordbook::{WordEntries};
+use crate::wordbook::WordEntries;
 use std::collections::HashMap;
 
 pub struct Backlog<'a> {
@@ -20,17 +20,11 @@ impl<'a> Backlog<'a> {
             match b.decks.get_mut(&lv) {
                 // Find deck of this level -> insert new word entry
                 Some(d) => {
-                    d.wordEntries.push(w);
+                    d.add_word(w);
                 }
                 // No deck of this level -> Create one and initialize with this word entry
                 None => {
-                    b.decks.insert(
-                        lv,
-                        Deck {
-                            level: lv,
-                            wordEntries: vec![w],
-                        },
-                    );
+                    b.decks.insert(lv, Deck::from_word_entry(w));
                 }
             }
         }
