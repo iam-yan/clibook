@@ -1,3 +1,5 @@
+mod backlog;
+mod deck;
 mod parser;
 mod wordbook;
 

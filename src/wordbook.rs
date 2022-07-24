@@ -54,7 +54,13 @@ pub struct WordEntry {
     pub word: Word,
 }
 
-type WordEntries = HashMap<String, WordEntry>; // {id: entry}
+impl WordEntry {
+    pub fn set_level(&mut self, level: u8) {
+        self.level = level;
+    }
+}
+
+pub type WordEntries = HashMap<String, WordEntry>; // {id: entry}
 
 #[derive(Serialize, Deserialize)]
 pub struct SentenceEntry {
@@ -71,8 +77,8 @@ struct Status {
 }
 
 pub struct Book {
-    entries: WordEntries,
-    sentences: SentenceEntries,
+    pub entries: WordEntries,
+    pub sentences: SentenceEntries,
     status: Option<Status>,
 }
 impl Book {
