@@ -1,13 +1,11 @@
-mod backlog;
-mod deck;
 mod parser;
-mod wordbook;
+mod study_book;
 
 use std::{fs, io::ErrorKind};
 
 pub fn update_wordbook(input: &str, path: &str) {
     // Generate book from input content.
-    let b = wordbook::Book::from_article(input);
+    let b = study_book::StudyBook::from_article(input);
 
     //
     match fs::read_to_string(path) {
