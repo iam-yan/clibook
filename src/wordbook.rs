@@ -1,98 +1,28 @@
 use crate::parser::Parser;
-use regex::Regex;
-use serde::{Deserialize, Serialize};
+use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
+use status::Status;
 use std::collections::HashMap;
+use word::{Word, WordEntry, WordEntryMap};
 
-#[derive(Serialize, Deserialize)]
-pub struct Word {
-    word: String,
-}
-impl Word {
-    pub fn from(v: &str) -> Word {
-        Word { word: v.to_owned() }
-    }
+pub mod sentence;
+pub mod status;
+pub mod word;
 
-    pub fn id(&self) -> String {
-        base64::encode(&self.word)
-    }
-
-    pub fn word(&self) -> &str {
-        &self.word
-    }
+struct StudyObjectCollection<T> {
+    pub achived: Option<T>,
+    pub backlog: Option<T>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Sentence {
-    sentence: String,
-}
-impl Sentence {
-    pub fn from(v: &str) -> Sentence {
-        Sentence {
-            sentence: v.to_owned(),
-        }
-    }
-
-    pub fn id(&self) -> String {
-        let re = Regex::new("`").unwrap();
-        let s = re.replace_all(&self.sentence, "").into_owned();
-
-        base64::encode(s)
-    }
-
-    pub fn sentence(&self) -> &str {
-        &self.sentence
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct WordEntry {
-    pub annotation: Option<String>,
-    pub hiragana: String,
-    pub level: u8,
-    pub sentence_id: String,
-    #[serde(flatten)]
-    pub word: Word,
-}
-
-impl WordEntry {
-    pub fn set_level(&mut self, level: u8) {
-        self.level = level;
-    }
-}
-
-pub type WordEntries = HashMap<String, WordEntry>; // {id: entry}
-
-#[derive(Serialize, Deserialize)]
-pub struct SentenceEntry {
-    #[serde(flatten)]
-    pub sentence: Sentence,
-    pub entry_ids: Vec<String>,
-}
-
-type SentenceEntries = HashMap<String, SentenceEntry>; // {id: sentence}
-
-struct Status {
-    entries: u16,
-    sentences: u16,
-}
-
-pub struct Book {
-    pub entries: WordEntries,
-    pub sentences: SentenceEntries,
+pub struct WordBook {
+    pub words: StudyObjectCollection<WordEntryMap>,
+    pub sentences: StudyObjectCollection<SentenceEntryMap>,
     status: Option<Status>,
 }
-impl Book {
-    pub fn new() -> Book {
-        Book {
-            entries: HashMap::new(),
-            sentences: HashMap::new(),
-            status: None,
-        }
-    }
 
-    pub fn from_article(article: &str) -> Book {
-        // Create an empty mutable book
-        let mut b = Book::new();
+impl WordBook {
+    pub fn from_article(article: &str) -> WordBook {
+        let mut backlog_w = HashMap::new();
+        let mut backlog_s = HashMap::new();
 
         // Start parsing
         let p = Parser::new();
@@ -101,10 +31,10 @@ impl Book {
         let s_iter = p.cap_sentences_iter(article);
 
         for s in s_iter {
-            // Get cleaned sentence as IdSrc
+            // Get cleaned sentence
             let clean_s = p.clean_sentence(s);
             let clean_s = Sentence::from(&clean_s);
-            let mut entry_ids = Vec::new();
+            let mut wordentry_ids = Vec::new();
 
             // Get iter of entry_strs
             let entries_iter = p.cap_entries_iter(s);
@@ -114,16 +44,15 @@ impl Book {
                 let mut f_iter = p.cap_fields_iter(e);
 
                 // Build the entry
-                let word = f_iter.next().unwrap();
-                let word = Word::from(word);
-                entry_ids.push(word.id()); // Add entry's id to the relevant stentence struct
+                let word = Word::from(f_iter.next().unwrap());
+                wordentry_ids.push(word.id()); // Add entry's id to the relevant stentence struct
 
                 let hiragana = f_iter.next().unwrap().to_owned();
 
                 let annotation = f_iter.next().map(String::from);
 
-                // Insert the entry into the entries map
-                b.entries.insert(
+                // Insert the word entry into the word backlog
+                backlog_w.insert(
                     word.id(),
                     WordEntry {
                         word,
@@ -135,30 +64,41 @@ impl Book {
                 );
             }
 
-            // b.sentences.insert(clean_s.id(), v)
-            b.sentences.insert(
+            // Insert the sentence entry into the sentence backlog
+            backlog_s.insert(
                 clean_s.id(),
                 SentenceEntry {
+                    backlog_volumn: wordentry_ids.len() as u8,
                     sentence: clean_s,
-                    entry_ids,
+                    wordentry_ids,
                 },
             );
         }
 
-        b
-    }
-
-    pub fn status(&mut self) -> &Status {
-        // Cache
-        if let None = self.status {
-            self.status = Some(Status {
-                entries: self.entries.len() as u16,
-                sentences: self.sentences.len() as u16,
-            });
+        WordBook {
+            words: StudyObjectCollection {
+                achived: None,
+                backlog: Some(backlog_w),
+            },
+            sentences: StudyObjectCollection {
+                achived: None,
+                backlog: Some(backlog_s),
+            },
+            status: None,
         }
-
-        self.status.as_ref().unwrap()
     }
+
+    // pub fn get_status(&self) -> Status {
+    //     // Cache
+    //     if let None = self.status {
+    //         self.status = Some(Status {
+    //             entries: self.entries.len() as u16,
+    //             sentences: self.sentences.len() as u16,
+    //         });
+    //     }
+
+    //     self.status.as_ref().unwrap()
+    // }
 }
 
 #[cfg(test)]
@@ -169,41 +109,44 @@ mod tests {
 
     #[test]
     fn parse_book() {
-        let b = Book::from_article(ARTICLE);
+        let b = WordBook::from_article(ARTICLE);
 
-        assert_eq!(b.sentences.len(), 2);
-        assert_eq!(b.entries.len(), 10);
+        let backlog_w = b.words.backlog.unwrap();
+        let backlog_s = b.sentences.backlog.unwrap();
+
+        assert_eq!(backlog_w.len(), 10);
+        assert_eq!(backlog_s.len(), 2);
 
         let w = Word::from("稼働");
         let w_id = w.id();
 
-        let e = b.entries.get(&w_id).unwrap();
-        assert_eq!(e.word.word(), "稼働");
-        assert_eq!(e.hiragana, "かどう");
+        let entry_w = backlog_w.get(&w_id).unwrap();
+        assert_eq!(entry_w.word.word(), "稼働");
+        assert_eq!(entry_w.hiragana, "かどう");
         assert_eq!(
-            e.annotation.to_owned().unwrap(),
+            entry_w.annotation.to_owned().unwrap(),
             "operation of a machine, running"
         );
 
-        let s = b.sentences.get(&e.sentence_id).unwrap();
+        let entry_s = backlog_s.get(&entry_w.sentence_id).unwrap();
         assert_eq!(
-            s.sentence.sentence(),
+            entry_s.sentence.sentence(),
             "トヨタ自動車はあすからロシアにある`工場`の`稼働`を`停止`すると`発表`しました。"
         );
 
         let w = Word::from("停止");
-        assert!(s.entry_ids.contains(&w.id()));
+        assert!(entry_s.wordentry_ids.contains(&w.id()));
 
-        let e = b.entries.get(&w.id()).unwrap();
-        assert_eq!(e.annotation, None);
+        let entry_w = backlog_w.get(&w.id()).unwrap();
+        assert_eq!(entry_w.annotation, None);
     }
 
-    #[test]
-    fn report_status() {
-        let mut b = Book::from_article(ARTICLE);
-        let s = b.status();
+    // #[test]
+    // fn report_status() {
+    //     let mut b = Book::from_article(ARTICLE);
+    //     let s = b.status();
 
-        assert_eq!(s.entries, 10);
-        assert_eq!(s.sentences, 2);
-    }
+    //     assert_eq!(s.entries, 10);
+    //     assert_eq!(s.sentences, 2);
+    // }
 }
