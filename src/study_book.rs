@@ -108,7 +108,7 @@ mod tests {
     const ARTICLE: &str = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>まる<<中・なか>>、日本の<<自動車・じどうしゃ>>メーカーに<<影響・えいきょう・>>が<<広がっています・ひろがる・to spread out>>。トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。";
 
     #[test]
-    fn parse_book() {
+    fn can_gen_book_from_article() {
         let b = StudyBook::from_article(ARTICLE);
 
         let backlog_w = b.words.backlog.unwrap();
