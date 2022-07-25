@@ -29,8 +29,8 @@ impl Sentence {
 #[derive(Serialize, Deserialize)]
 pub struct SentenceEntry {
     pub backlog_volumn: u8,
-    pub sentence: Sentence,
     #[serde(flatten)]
+    pub sentence: Sentence,
     pub wordentry_ids: Vec<String>,
 }
 

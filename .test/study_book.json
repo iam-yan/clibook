@@ -1,0 +1,38 @@
+{
+  "words": {
+    "backlog": {
+      "120": {
+        "annotation": "",
+        "hiragana": "けいざいせいさい",
+        "level": 1,
+        "sentence_id": "1",
+        "word": "経済制裁"
+      },
+      "122": {
+        "annotation": "to spread out",
+        "hiragana": "ひろがる",
+        "level": 0,
+        "sentence_id": "1",
+        "word": "広がっています"
+      }
+    },
+    "achived": {
+      "121": {
+        "annotation": "",
+        "hiragana": "つよ",
+        "level": 2,
+        "sentence_id": "1",
+        "word": "強"
+      }
+    }
+  },
+  "sentences": {
+    "backlog": {
+      "1": {
+        "sentence": "ロシアへの経済制裁が強まる中、日本の自動車メーカーに影響が広がっています。",
+        "wordentry_ids": ["120", "121", "122"],
+        "backlog_volumn": 2
+      }
+    }
+  }
+}
