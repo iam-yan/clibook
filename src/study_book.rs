@@ -13,14 +13,14 @@ pub struct StudyObjectCollection<T> {
     pub backlog: Option<T>,
 }
 
-pub struct WordBook {
+pub struct StudyBook {
     pub words: StudyObjectCollection<WordEntryMap>,
     pub sentences: StudyObjectCollection<SentenceEntryMap>,
     status: Option<Status>,
 }
 
-impl WordBook {
-    pub fn from_article(article: &str) -> WordBook {
+impl StudyBook {
+    pub fn from_article(article: &str) -> StudyBook {
         let mut backlog_w = HashMap::new();
         let mut backlog_s = HashMap::new();
 
@@ -75,7 +75,7 @@ impl WordBook {
             );
         }
 
-        WordBook {
+        StudyBook {
             words: StudyObjectCollection {
                 achived: None,
                 backlog: Some(backlog_w),
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn parse_book() {
-        let b = WordBook::from_article(ARTICLE);
+        let b = StudyBook::from_article(ARTICLE);
 
         let backlog_w = b.words.backlog.unwrap();
         let backlog_s = b.sentences.backlog.unwrap();
