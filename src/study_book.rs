@@ -3,20 +3,23 @@ use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
 use status::Status;
 use std::collections::HashMap;
 use word::{Word, WordEntry, WordEntryMap};
+use serde::{Deserialize, Serialize};
 
 pub mod sentence;
 pub mod status;
 pub mod word;
 
+#[derive(Serialize, Deserialize)]
 pub struct StudyObjectCollection<T> {
     pub achived: Option<T>,
     pub backlog: Option<T>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct StudyBook {
     pub words: StudyObjectCollection<WordEntryMap>,
     pub sentences: StudyObjectCollection<SentenceEntryMap>,
-    status: Option<Status>,
+    // status: Option<Status>,
 }
 
 impl StudyBook {
@@ -84,7 +87,7 @@ impl StudyBook {
                 achived: None,
                 backlog: Some(backlog_s),
             },
-            status: None,
+            // status: None,
         }
     }
 

@@ -1,6 +1,10 @@
 mod parser;
 mod study_book;
 
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+use study_book::StudyBook;
+
 use std::{fs, io::ErrorKind};
 
 pub fn update_wordbook(input: &str, path: &str) {
@@ -20,17 +24,23 @@ pub fn update_wordbook(input: &str, path: &str) {
     }
 }
 
-pub fn load_wordbook(path: &str) -> Option<String> {
+pub fn load_wordbook(path: &str) -> Result<StudyBook> {
     let res = match fs::read_to_string(path) {
-        Ok(str) => Some(str),
-        Err(err) => match err.kind() {
-            ErrorKind::NotFound => None,
-            _ => Some(String::from("error")),
+        Ok(str) => {
+            match serde_json::from_str(&str) {
+                Ok(book) => Ok(book),
+                Err(err) => Err(err),
+            }
         },
+        Err(err) => Err(err),
     };
 
     res
 }
+
+// book::from_json -> Err
+// load -> Option
+// how to hierachy it?
 
 #[cfg(test)]
 mod tests {
@@ -38,6 +48,7 @@ mod tests {
 
     const FILE_NOT_EXIST: &str = ".test/ghost.json";
     const I_AM_HERE_TXT: &str = ".test/iamhere.txt";
+    const VALID_BOOK_JSON: &str = ".test/study_book.json";
 
     #[test]
     fn can_check_the_absence_of_wordbook() {
