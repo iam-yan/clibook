@@ -8,7 +8,7 @@ pub mod sentence;
 pub mod status;
 pub mod word;
 
-struct StudyObjectCollection<T> {
+pub struct StudyObjectCollection<T> {
     pub achived: Option<T>,
     pub backlog: Option<T>,
 }
