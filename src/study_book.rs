@@ -1,9 +1,9 @@
 use crate::parser::Parser;
 use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
+use serde::{Deserialize, Serialize};
 use status::Status;
 use std::collections::HashMap;
 use word::{Word, WordEntry, WordEntryMap};
-use serde::{Deserialize, Serialize};
 
 pub mod sentence;
 pub mod status;
@@ -91,6 +91,12 @@ impl StudyBook {
         }
     }
 
+    pub fn has_words_in_backlog(&self) -> bool {
+        match &self.words.backlog {
+            None => true,
+            _ => false,
+        }
+    }
     // pub fn get_status(&self) -> Status {
     //     // Cache
     //     if let None = self.status {
