@@ -2,7 +2,6 @@ mod parser;
 mod study_book;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
 use study_book::StudyBook;
 
 use std::{fs, io::ErrorKind};
@@ -24,21 +23,20 @@ pub fn update_wordbook(input: &str, path: &str) {
     }
 }
 
-pub fn load_study_book(path: &str) -> Result<Option<StudyBook>> {
+pub fn load_study_book(path: &str) -> Result<Option<StudyBook>, &'static str> {
     let res = match fs::read_to_string(path) {
         Ok(str) => match serde_json::from_str(&str) {
             Ok(book) => Ok(Some(book)),
-            Err(err) => Err(err),
+            Err(_) => Err("The source file is invalid."),
         },
-        Err(_) => Ok(None),
+        Err(err) => match err.kind() {
+            ErrorKind::NotFound => Ok(None),
+            _ => Err("Failed to load the source file."),
+        },
     };
 
     res
 }
-
-// book::from_json -> Err
-// load -> Option
-// how to hierachy it?
 
 #[cfg(test)]
 mod tests {
