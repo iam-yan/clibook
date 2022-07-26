@@ -7,14 +7,32 @@ use std::{
     process,
 };
 
-use learn_jp::update_wordbook;
+use learn_jp::{update_wordbook, load_study_book};
+
+// <todo> Introduce the concept of user to bring some customization.
+const USER_NAME: &str = "Yan";
+
+const SAVE_PATH:  &str = "book.json";
 
 fn main() {
-    // <todo> Introduce the concept of user to bring some customization.
     let user = "Yan";
 
     let data_file = String::from("wordbook.json");
 
+    match load_study_book(SAVE_PATH) {
+        Ok(book_opt) => {
+            match book_opt {
+                Some(book) => println!("Get book!"),
+                None => println!("No book!"),
+            }
+        },
+        Err(err) => {
+            println!("Oops something went wrong: {}.", err);
+            process::exit(1);
+        }
+    }
+
+    return ();
     // Initial check on whether we've got saved book...
     match fs::read_to_string(data_file) {
         // ...- Yes -> create book and decks from the file.
