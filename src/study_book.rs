@@ -78,14 +78,16 @@ impl StudyBook {
             );
         }
 
+        let no_word = backlog_w.len() == 0;
+
         StudyBook {
             words: StudyObjectCollection {
                 achived: None,
-                backlog: Some(backlog_w),
+                backlog: if no_word { None } else { Some(backlog_w) },
             },
             sentences: StudyObjectCollection {
                 achived: None,
-                backlog: Some(backlog_s),
+                backlog: if no_word { None } else { Some(backlog_s) },
             },
             // status: None,
         }
@@ -93,8 +95,8 @@ impl StudyBook {
 
     pub fn has_words_in_backlog(&self) -> bool {
         match &self.words.backlog {
-            None => true,
-            _ => false,
+            None => false,
+            _ => true,
         }
     }
     // pub fn get_status(&self) -> Status {
@@ -115,6 +117,13 @@ mod tests {
     use super::*;
 
     const ARTICLE: &str = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>まる<<中・なか>>、日本の<<自動車・じどうしゃ>>メーカーに<<影響・えいきょう・>>が<<広がっています・ひろがる・to spread out>>。トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。";
+
+    #[test]
+    fn can_detect_no_word_in_backlog() {
+        let b = StudyBook::from_article("へへへへへへ");
+
+        assert!(!b.has_words_in_backlog());
+    }
 
     #[test]
     fn can_gen_book_from_article() {
