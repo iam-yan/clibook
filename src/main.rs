@@ -26,7 +26,7 @@ fn main() {
             // Find saved book
             Some(book) => {
                 // If have no words in the backlog -> Ask for input
-                if book.has_words_in_backlog() {
+                if book.no_words_in_backlog() {
                     println!("Good job! There is no words in your backlog. Now let's add more.");
                     let input: String = ui::request_raw_content().unwrap();
 
