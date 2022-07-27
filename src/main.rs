@@ -1,20 +1,20 @@
 // <todo> Store the loaded json as bac.json on load, on update?
 // <todo> Store the history logs of inputting article.
 
-use dialoguer::{Input, Select, theme::ColorfulTheme};
+use console::Term;
+use dialoguer::{theme::ColorfulTheme, Input, Select};
 use std::{
     fs,
     io::{self, ErrorKind},
     process,
 };
-use console::Term;
 
-use learn_jp::{load_study_book, update_wordbook};
+use learn_jp::{load_study_book, ui::request_raw_content, update_wordbook};
 
 // <todo> Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
 
-const SAVE_PATH: &str = ".prod/book.json";
+const SAVE_PATH: &str = ".prod/book2.json";
 
 fn main() {
     match load_study_book(SAVE_PATH) {
@@ -22,11 +22,7 @@ fn main() {
             Some(book) => println!("Get book!"),
             None => {
                 println!("Welcome. To start the advanture, let's add some words into the backlog.");
-                let input: String = Input::new()
-                    .with_prompt("Please input some content with valid markups.")
-                    .default("トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。".into())
-                    .interact_text()
-                    .unwrap();
+                let input: String = request_raw_content().unwrap();
 
                 println!("{}", input);
             }
@@ -37,7 +33,8 @@ fn main() {
                 .items(&items)
                 .default(0)
                 .interact_on_opt(&Term::stderr())
-                .unwrap().unwrap();
+                .unwrap()
+                .unwrap();
             println!("{}", items[selection]);
             // Handle error:
             //  - Print the error msg
