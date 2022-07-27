@@ -9,7 +9,11 @@ use std::{
     process,
 };
 
-use learn_jp::{load_study_book, ui::request_raw_content, update_wordbook};
+use learn_jp::{
+    load_study_book,
+    ui::{self, NextStep},
+    update_wordbook,
+};
 
 // <todo> Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
@@ -19,23 +23,41 @@ const SAVE_PATH: &str = ".prod/book2.json";
 fn main() {
     match load_study_book(SAVE_PATH) {
         Ok(book_opt) => match book_opt {
-            Some(book) => println!("Get book!"),
+            // Find saved book
+            Some(book) => {
+                // If have no words in the backlog -> Ask for input
+                if book.has_words_in_backlog() {
+                    println!("Good job! There is no words in your backlog. Now let's add more.");
+                    let input: String = ui::request_raw_content().unwrap();
+
+                    println!("{}", input);
+                }
+                // Else -> Ask for next step: Study or Add more contents
+                else {
+                    match ui::study_or_add_more() {
+                        Ok(decision) => {
+                            // Response based on users' decision
+                            // to fix: here should be a loop for users to keep adding contents
+                            match decision {
+                                NextStep::AddMore => {},
+                                NextStep::Study => {},
+                            }
+                        }
+                        Err(err) => {
+                            println!("Oops something went wrong: {}.", err);
+                            process::exit(1);
+                        }
+                    }
+                }
+            }
             None => {
                 println!("Welcome. To start the advanture, let's add some words into the backlog.");
-                let input: String = request_raw_content().unwrap();
+                let input: String = ui::request_raw_content().unwrap();
 
                 println!("{}", input);
             }
         },
         Err(err) => {
-            let items = vec!["Item 1", "item 2"];
-            let selection = Select::with_theme(&ColorfulTheme::default())
-                .items(&items)
-                .default(0)
-                .interact_on_opt(&Term::stderr())
-                .unwrap()
-                .unwrap();
-            println!("{}", items[selection]);
             // Handle error:
             //  - Print the error msg
             //  - End the thread
