@@ -1,74 +1,89 @@
 // <todo> Store the loaded json as bac.json on load, on update?
 // <todo> Store the history logs of inputting article.
 
+use dialoguer::{Input, Select, theme::ColorfulTheme};
 use std::{
     fs,
     io::{self, ErrorKind},
     process,
 };
+use console::Term;
 
-use learn_jp::{update_wordbook, load_study_book};
+use learn_jp::{load_study_book, update_wordbook};
 
 // <todo> Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
 
-const SAVE_PATH:  &str = "book.json";
+const SAVE_PATH: &str = ".prod/book.json";
 
 fn main() {
-    let user = "Yan";
-
-    let data_file = String::from("wordbook.json");
-
     match load_study_book(SAVE_PATH) {
-        Ok(book_opt) => {
-            match book_opt {
-                Some(book) => println!("Get book!"),
-                None => println!("No book!"),
+        Ok(book_opt) => match book_opt {
+            Some(book) => println!("Get book!"),
+            None => {
+                println!("Welcome. To start the advanture, let's add some words into the backlog.");
+                let input: String = Input::new()
+                    .with_prompt("Please input some content with valid markups.")
+                    .default("トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。".into())
+                    .interact_text()
+                    .unwrap();
+
+                println!("{}", input);
             }
         },
         Err(err) => {
+            let items = vec!["Item 1", "item 2"];
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .items(&items)
+                .default(0)
+                .interact_on_opt(&Term::stderr())
+                .unwrap().unwrap();
+            println!("{}", items[selection]);
+            // Handle error:
+            //  - Print the error msg
+            //  - End the thread
             println!("Oops something went wrong: {}.", err);
             process::exit(1);
         }
-    }
+    };
 
-    return ();
-    // Initial check on whether we've got saved book...
-    match fs::read_to_string(data_file) {
-        // ...- Yes -> create book and decks from the file.
-        Ok(content) => {
-            println!("Aha you are back, {}. My good boy!", user);
-        }
-        Err(err) => match err.kind() {
-            // ...- No -> create book and decks from the first input.
-            ErrorKind::NotFound => {
-                // 1. Ask for input...
-                println!("Hey man, a great adventure is waiting for you. But first, let's create you the first book.");
-                println!("But first, let's create you the first book.");
-                println!("No worries it's easy. Just throw me something in the wizard format.");
+    // // Initial check on whether we've got saved book...
+    // match fs::read_to_string(data_file) {
+    //     // ...- Yes -> create book and decks from the file.
+    //     Ok(content) => {
+    //         println!("Aha you are back, {}. My good boy!", user);
+    //     }
+    //     Err(err) => match err.kind() {
+    //         // ...- No -> create book and decks from the first input.
+    //         ErrorKind::NotFound => {
+    //             // 1. Ask for input...
+    //             println!("Hey man, a great adventure is waiting for you. But first, let's create you the first book.");
+    //             println!("But first, let's create you the first book.");
+    //             println!("No worries it's easy. Just throw me something in the wizard format.");
 
-                let mut input = String::new();
+    //             let mut input = String::new();
 
-                loop {
-                    // 2. Get input and store it in a variable.
-                    io::stdin().read_line(&mut input).unwrap_or_else(|err| {
-                        // Handle the error of reading input.
-                        eprintln!("Failed to read line with err: {}", err);
-                        process::exit(1);
-                    });
+    //             loop {
+    //                 // 2. Get input and store it in a variable.
+    //                 io::stdin().read_line(&mut input).unwrap_or_else(|err| {
+    //                     // Handle the error of reading input.
+    //                     eprintln!("Failed to read line with err: {}", err);
+    //                     process::exit(1);
+    //                 });
 
-                    let input = input.trim(); // Clean leading and trailing whitespace.
+    //                 let input = input.trim(); // Clean leading and trailing whitespace.
 
-                    // [ ] Convert it to book
-                    // [ ] Succeed -> Save input into book.txt
-                    // [ ] Failed -> Ask for input again.
-                    update_wordbook(input, "wordbook.txt");
-                }
-            }
-            // ...- Handle error on checking the file.
-            _ => {}
-        },
-    }
+    //                 // [ ] Convert it to book
+    //                 // [ ] Succeed -> Save input into book.txt
+    //                 // [ ] Failed -> Ask for input again.
+    //                 update_wordbook(input, "wordbook.txt");
+    //             }
+    //         }
+    //         // ...- Handle error on checking the file.
+    //         _ => {}
+    //     },
+    // }
+
     // A. Initial check
     //      - No -> Ask for first sentences input -> B.
     //      - Yes -> Read the file to create book and decks
