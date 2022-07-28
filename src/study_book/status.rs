@@ -1,5 +1,6 @@
 pub struct Status {
-    archive: u16,
-    backlog: u16,
-    sentences: u16,
+    pub w_archived: usize,
+    pub w_backlog: usize,
+    pub s_archived:usize,
+    pub s_backlog: usize,
 }

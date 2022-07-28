@@ -19,7 +19,6 @@ pub struct StudyObjectCollection<T> {
 pub struct StudyBook {
     pub words: StudyObjectCollection<WordEntryMap>,
     pub sentences: StudyObjectCollection<SentenceEntryMap>,
-    // status: Option<Status>,
 }
 
 impl StudyBook {
@@ -91,6 +90,28 @@ impl StudyBook {
             },
             // status: None,
         }
+    }
+
+    pub fn get_status(&self) -> Status {
+        fn get_size<K,V>(map: &Option<HashMap<K, V>>) -> usize {
+            match map {
+                Some(m) => m.len(),
+                None => 0,
+            }
+        }
+
+        Status {
+            w_archived: get_size(&self.words.achived),
+            w_backlog: get_size(&self.words.backlog),
+            s_archived: get_size(&self.sentences.achived),
+            s_backlog: get_size(&self.sentences.backlog),
+        }
+    }
+
+    pub fn merge<F>(&self, other_book: StudyBook, cb: Option<F>)
+    where
+        F: Fn(Status, Status),
+    {
     }
 
     pub fn no_words_in_backlog(&self) -> bool {
