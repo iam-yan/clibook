@@ -93,10 +93,10 @@ impl StudyBook {
         }
     }
 
-    pub fn has_words_in_backlog(&self) -> bool {
+    pub fn no_words_in_backlog(&self) -> bool {
         match &self.words.backlog {
-            None => false,
-            _ => true,
+            None => true,
+            _ => false,
         }
     }
     // pub fn get_status(&self) -> Status {
@@ -122,7 +122,7 @@ mod tests {
     fn can_detect_no_word_in_backlog() {
         let b = StudyBook::from_article("へへへへへへ");
 
-        assert!(!b.has_words_in_backlog());
+        assert!(b.no_words_in_backlog());
     }
 
     #[test]

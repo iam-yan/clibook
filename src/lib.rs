@@ -1,5 +1,6 @@
 mod parser;
-mod study_book;
+pub mod study_book;
+pub mod ui;
 
 use serde::{Deserialize, Serialize};
 use study_book::StudyBook;
