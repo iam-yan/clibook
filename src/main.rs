@@ -10,7 +10,7 @@ use std::{
 };
 
 use learn_jp::{
-    load_study_book,
+    load_study_book, study_book,
     ui::{self, NextStep},
     update_wordbook,
 };
@@ -21,40 +21,30 @@ const USER_NAME: &str = "Yan";
 const SAVE_PATH: &str = ".prod/book2.json";
 
 fn main() {
-    match load_study_book(SAVE_PATH) {
+    // Initialize study_book with either saved book or user's first input,
+    //  to get a book with words in the backlog
+    let b = match load_study_book(SAVE_PATH) {
         Ok(book_opt) => match book_opt {
-            // Find saved book
+            // Find saved book -> Check whether there are words in the backlog
             Some(book) => {
                 // If have no words in the backlog -> Ask for input
                 if book.no_words_in_backlog() {
                     println!("Good job! There is no words in your backlog. Now let's add more.");
                     let input: String = ui::request_raw_content().unwrap();
 
-                    println!("{}", input);
+                    study_book::StudyBook::from_article(&input)
                 }
-                // Else -> Ask for next step: Study or Add more contents
+                // Else, return the book directly
                 else {
-                    match ui::study_or_add_more() {
-                        Ok(decision) => {
-                            // Response based on users' decision
-                            // to fix: here should be a loop for users to keep adding contents
-                            match decision {
-                                NextStep::AddMore => {},
-                                NextStep::Study => {},
-                            }
-                        }
-                        Err(err) => {
-                            println!("Oops something went wrong: {}.", err);
-                            process::exit(1);
-                        }
-                    }
+                    book
                 }
             }
+            // There is no saved book -> ask for initial input
             None => {
                 println!("Welcome. To start the advanture, let's add some words into the backlog.");
                 let input: String = ui::request_raw_content().unwrap();
 
-                println!("{}", input);
+                study_book::StudyBook::from_article(&input)
             }
         },
         Err(err) => {
@@ -65,6 +55,39 @@ fn main() {
             process::exit(1);
         }
     };
+
+    loop {
+        // Report status
+        // x words of y sentences added to your backlog. Now you have m words of n sentences to challenge.
+
+        // Ask for the next step
+        print!("Should we start the learning?");
+        match ui::study_or_add_more() {
+            Ok(decision) => {
+                // Response based on users' decision
+                // to fix: here should be a loop for users to keep adding contents
+                match decision {
+                    NextStep::AddMore => {
+                        // Add more
+                        print!("Ok.");
+                        let input: String = ui::request_raw_content().unwrap();
+
+                        // Merge
+                        // and repeat the loop
+                    }
+                    NextStep::Study => {
+                        break;
+                    }
+                }
+            }
+            Err(err) => {
+                println!("Oops something went wrong: {}.", err);
+                process::exit(1);
+            }
+        }
+    }
+
+    // Now book is ready, let's study!
 
     // // Initial check on whether we've got saved book...
     // match fs::read_to_string(data_file) {

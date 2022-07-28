@@ -21,8 +21,8 @@ pub enum NextStep {
 impl fmt::Display for NextStep {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let printable = match *self {
-            NextStep::Study => "Study",
-            NextStep::AddMore => "Add more contents",
+            NextStep::Study => "Yes",
+            NextStep::AddMore => "No, let's add more contents",
         };
         write!(f, "{}", printable)
     }
