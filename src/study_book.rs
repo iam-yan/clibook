@@ -120,17 +120,6 @@ impl StudyBook {
             _ => false,
         }
     }
-    // pub fn get_status(&self) -> Status {
-    //     // Cache
-    //     if let None = self.status {
-    //         self.status = Some(Status {
-    //             entries: self.entries.len() as u16,
-    //             sentences: self.sentences.len() as u16,
-    //         });
-    //     }
-
-    //     self.status.as_ref().unwrap()
-    // }
 }
 
 #[cfg(test)]
