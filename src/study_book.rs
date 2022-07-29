@@ -1,8 +1,9 @@
 use crate::parser::Parser;
 use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
 use serde::{Deserialize, Serialize};
+use serde_json;
 use status::Status;
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, fs, hash::Hash};
 use word::{Word, WordEntry, WordEntryMap};
 
 pub mod sentence;
@@ -164,6 +165,17 @@ impl StudyBook {
             _ => false,
         }
     }
+
+    pub fn to_json(&self) -> Result<String, &'static str> {
+        match serde_json::to_string(self) {
+            Ok(json) => Ok(json),
+            Err(_) => Err("Failed to convert the book into json"),
+        }
+    }
+
+    pub fn save_json(&self, path: &str) {
+        fs::write(path, self.to_json().unwrap());
+    }
 }
 
 #[cfg(test)]
@@ -246,5 +258,23 @@ mod tests {
                 assert_eq!(s_new.w_backlog, 10);
             }),
         );
+    }
+
+    #[test]
+    fn can_save_json() {
+        let path = ".test/test.json";
+        let mini_article = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>。";
+        let mini_book = StudyBook::from_article(mini_article);
+        mini_book.save_json(path);
+
+        let saved_book = fs::read_to_string(path).unwrap();
+        let saved_book: StudyBook = serde_json::from_str(&saved_book).unwrap();
+
+        let s = saved_book.get_status();
+
+        assert_eq!(s.s_archived, 0);
+        assert_eq!(s.w_archived, 0);
+        assert_eq!(s.s_backlog, 1);
+        assert_eq!(s.w_backlog, 2);
     }
 }

@@ -58,6 +58,8 @@ fn main() {
     };
 
     loop {
+        // [todo] save
+
         // Report the initial status
         let s = b.get_status();
         println!(
