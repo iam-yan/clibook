@@ -2,7 +2,7 @@ use crate::parser::Parser;
 use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
 use serde::{Deserialize, Serialize};
 use status::Status;
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 use word::{Word, WordEntry, WordEntryMap};
 
 pub mod sentence;
@@ -93,7 +93,7 @@ impl StudyBook {
     }
 
     pub fn get_status(&self) -> Status {
-        fn get_size<K,V>(map: &Option<HashMap<K, V>>) -> usize {
+        fn get_size<K, V>(map: &Option<HashMap<K, V>>) -> usize {
             match map {
                 Some(m) => m.len(),
                 None => 0,
@@ -108,10 +108,54 @@ impl StudyBook {
         }
     }
 
-    pub fn merge<F>(&self, other_book: StudyBook, cb: Option<F>)
+    pub fn merge<F>(book1: StudyBook, book2: StudyBook, cb: Option<F>) -> StudyBook
     where
         F: Fn(Status, Status),
     {
+        fn merge_map<K: Hash + Eq, V>(
+            map1: Option<HashMap<K, V>>,
+            map2: Option<HashMap<K, V>>,
+        ) -> Option<HashMap<K, V>> {
+            let mut new_map: HashMap<K, V> = HashMap::new();
+
+            if let Some(m1) = map1 {
+                for (k, v) in m1 {
+                    new_map.insert(k, v);
+                }
+            }
+
+            if let Some(m2) = map2 {
+                for (k, v) in m2 {
+                    new_map.insert(k, v);
+                }
+            }
+
+            match new_map.len() {
+                0 => None,
+                _ => Some(new_map),
+            }
+        }
+
+        let s_add = book2.get_status();
+
+        let new_book = StudyBook {
+            words: StudyObjectCollection {
+                achived: merge_map(book1.words.achived, book2.words.achived),
+                backlog: merge_map(book1.words.backlog, book2.words.backlog),
+            },
+            sentences: StudyObjectCollection {
+                achived: merge_map(book1.sentences.achived, book2.sentences.achived),
+                backlog: merge_map(book1.sentences.backlog, book2.sentences.backlog),
+            },
+        };
+
+        let s_new = new_book.get_status();
+
+        if let Some(cb) = cb {
+            cb(s_add, s_new);
+        }
+
+        new_book
     }
 
     pub fn no_words_in_backlog(&self) -> bool {
@@ -127,6 +171,9 @@ mod tests {
     use super::*;
 
     const ARTICLE: &str = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>まる<<中・なか>>、日本の<<自動車・じどうしゃ>>メーカーに<<影響・えいきょう・>>が<<広がっています・ひろがる・to spread out>>。トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。";
+
+    const A_1: &str = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>まる<<中・なか>>、日本の<<自動車・じどうしゃ>>メーカーに<<影響・えいきょう・>>が<<広がっています・ひろがる・to spread out>>。";
+    const A_2: &str = r"トヨタ自動車はあすからロシアにある<<工場・こうじょう>>の<<稼働・かどう・operation of a machine, running>>を<<停止・ていし>>すると<<発表・はっぴょう>>しました。";
 
     #[test]
     fn can_detect_no_word_in_backlog() {
@@ -169,7 +216,6 @@ mod tests {
         assert_eq!(entry_w.annotation, None);
     }
 
-    
     #[test]
     fn can_report_correct_status() {
         let s = StudyBook::from_article(ARTICLE).get_status();
@@ -178,5 +224,27 @@ mod tests {
         assert_eq!(s.w_archived, 0);
         assert_eq!(s.s_backlog, 2);
         assert_eq!(s.w_backlog, 10);
+    }
+
+    #[test]
+    fn can_merge_books() {
+        let b1 = StudyBook::from_article(A_1);
+        let b2 = StudyBook::from_article(A_2);
+
+        StudyBook::merge(
+            b1,
+            b2,
+            Some(|s_add: Status, s_new: Status| {
+                assert_eq!(s_add.s_archived, 0);
+                assert_eq!(s_add.w_archived, 0);
+                assert_eq!(s_add.s_backlog, 1);
+                assert_eq!(s_add.w_backlog, 4);
+
+                assert_eq!(s_new.s_archived, 0);
+                assert_eq!(s_new.w_archived, 0);
+                assert_eq!(s_new.s_backlog, 2);
+                assert_eq!(s_new.w_backlog, 10);
+            }),
+        );
     }
 }
