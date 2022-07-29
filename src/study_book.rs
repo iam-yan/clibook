@@ -180,12 +180,14 @@ mod tests {
         assert_eq!(entry_w.annotation, None);
     }
 
-    // #[test]
-    // fn report_status() {
-    //     let mut b = Book::from_article(ARTICLE);
-    //     let s = b.status();
+    
+    #[test]
+    fn can_report_correct_status() {
+        let s = StudyBook::from_article(ARTICLE).get_status();
 
-    //     assert_eq!(s.entries, 10);
-    //     assert_eq!(s.sentences, 2);
-    // }
+        assert_eq!(s.s_archived, 0);
+        assert_eq!(s.w_archived, 0);
+        assert_eq!(s.s_backlog, 2);
+        assert_eq!(s.w_backlog, 10);
+    }
 }
