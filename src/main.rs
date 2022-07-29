@@ -10,7 +10,8 @@ use std::{
 };
 
 use learn_jp::{
-    load_study_book, study_book,
+    load_study_book,
+    study_book::{self, StudyBook, status::Status},
     ui::{self, NextStep},
     update_wordbook,
 };
@@ -23,7 +24,7 @@ const SAVE_PATH: &str = ".prod/book2.json";
 fn main() {
     // Initialize study_book with either saved book or user's first input,
     //  to get a book with words in the backlog
-    let b = match load_study_book(SAVE_PATH) {
+    let mut b = match load_study_book(SAVE_PATH) {
         Ok(book_opt) => match book_opt {
             // Find saved book -> Check whether there are words in the backlog
             Some(book) => {
@@ -57,11 +58,15 @@ fn main() {
     };
 
     loop {
-        // Report status
-        // x words of y sentences added to your backlog. Now you have m words of n sentences to challenge.
+        // Report the initial status
+        let s = b.get_status();
+        println!(
+            "Now we have {} words of {} sentences to work on.",
+            s.w_backlog, s.s_backlog
+        );
 
         // Ask for the next step
-        print!("Should we start the learning?");
+        print!("Should we start learning?");
         match ui::study_or_add_more() {
             Ok(decision) => {
                 // Response based on users' decision
@@ -69,11 +74,19 @@ fn main() {
                 match decision {
                     NextStep::AddMore => {
                         // Add more
-                        print!("Ok.");
                         let input: String = ui::request_raw_content().unwrap();
-
                         // Merge
-                        // and repeat the loop
+                        b = StudyBook::merge(
+                            b,
+                            StudyBook::from_article(&input),
+                            Some(|s_add:Status, _| {
+                                println!(
+                                    "You have just added {} words of {} new sentences.",
+                                    s_add.w_backlog, s_add.s_backlog
+                                )
+                            }),
+                        );
+                        // and then repeat the loop
                     }
                     NextStep::Study => {
                         break;
