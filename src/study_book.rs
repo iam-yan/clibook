@@ -1,4 +1,5 @@
 use crate::parser::Parser;
+use rand::{self, prelude::SliceRandom};
 use sentence::{Sentence, SentenceEntry, SentenceEntryMap};
 use serde::{Deserialize, Serialize};
 use serde_json;
@@ -90,6 +91,19 @@ impl StudyBook {
                 backlog: if no_word { None } else { Some(backlog_s) },
             },
             // status: None,
+        }
+    }
+
+    pub fn get_deck(&self) -> Option<Vec<&WordEntry>> {
+        if let Some(backlog) = &self.words.backlog {
+            let mut deck: Vec<&WordEntry> = backlog.values().collect();
+
+            // Shuffle the deck
+            let mut rng = rand::thread_rng();
+            deck.shuffle(&mut rng);
+            Some(deck)
+        } else {
+            None
         }
     }
 
@@ -282,5 +296,33 @@ mod tests {
         assert_eq!(s.w_archived, 0);
         assert_eq!(s.s_backlog, 1);
         assert_eq!(s.w_backlog, 2);
+    }
+
+    #[test]
+    fn can_gen_deck() {
+        let b = StudyBook::from_article(ARTICLE);
+        let d = b.get_deck().unwrap();
+
+        let w: Vec<&str> = d.iter().map(|e| e.word.word()).collect();
+
+        assert_eq!(w.len(), 10);
+        assert!(w.contains(&"経済制裁"));
+        assert!(w.contains(&"稼働"));
+    }
+
+    #[test]
+    fn deck_is_random() {
+        let b = StudyBook::from_article(ARTICLE);
+        let d1 = b.get_deck().unwrap();
+        let d2 = b.get_deck().unwrap();
+
+        let res0 = d1[0].word.word() == d2[0].word.word();
+        let res1 = d1[1].word.word() == d2[1].word.word();
+        let res2 = d1[2].word.word() == d2[2].word.word();
+
+        // If there is at least one comparison result is false,
+        //  we can say these 2 decks are not identical,
+        //  i.e. deck generation has randomness
+        assert!(!res0 || !res1 || !res2);
     }
 }
