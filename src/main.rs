@@ -8,7 +8,7 @@ use std::{
 
 use learn_jp::{
     load_study_book,
-    study_book::{self, StudyBook, status::Status},
+    study_book::{self, status::Status, StudyBook},
     ui::{self, NextStep},
     update_wordbook,
 };
@@ -55,7 +55,11 @@ fn main() {
     };
 
     loop {
-        // [todo] save
+        // Save
+        if let Err(err) = b.save_json(SAVE_PATH) {
+            println!("Oops something went wrong: {}.", err);
+            process::exit(1);
+        };
 
         // Report the initial status
         let s = b.get_status();
@@ -78,7 +82,7 @@ fn main() {
                         b = StudyBook::merge(
                             b,
                             StudyBook::from_article(&input),
-                            Some(|s_add:Status, _| {
+                            Some(|s_add: Status, _| {
                                 println!(
                                     "You have just added {} words of {} new sentences.",
                                     s_add.w_backlog, s_add.s_backlog

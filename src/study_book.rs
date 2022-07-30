@@ -173,8 +173,14 @@ impl StudyBook {
         }
     }
 
-    pub fn save_json(&self, path: &str) {
-        fs::write(path, self.to_json().unwrap());
+    pub fn save_json(&self, path: &str) -> Result<(), &'static str> {
+        match self.to_json() {
+            Ok(json) => match fs::write(path, json) {
+                Ok(_) => Ok(()),
+                Err(_) => Err("Failed to save the book in the target path."),
+            },
+            Err(msg) => Err(msg),
+        }
     }
 }
 
@@ -265,7 +271,7 @@ mod tests {
         let path = ".test/test.json";
         let mini_article = r"ロシアへの<<経済制裁・けいざいせいさい>>が<<強・つよ>>。";
         let mini_book = StudyBook::from_article(mini_article);
-        mini_book.save_json(path);
+        mini_book.save_json(path).unwrap();
 
         let saved_book = fs::read_to_string(path).unwrap();
         let saved_book: StudyBook = serde_json::from_str(&saved_book).unwrap();
