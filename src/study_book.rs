@@ -123,6 +123,70 @@ impl StudyBook {
         }
     }
 
+    pub fn level_down_word(&mut self, w_id: &str) -> Result<(), &'static str> {
+        if let Some(words) = &mut self.words.backlog {
+            if let Some(w) = words.get_mut(w_id) {
+                w.level -= 1;
+
+                // If the level becomes 0 after leveling down...
+                if w.level == 0 {
+                    // Clone and store the sentence id first for using later,
+                    //  because w will be moved when getting inserted into achived map
+                    let s_id = w.sentence_id.clone();
+
+                    // Move the word to the achived collection of words...
+                    // 1. Remove it from the backlog
+                    let w = words.remove(w_id).unwrap();
+                    // 2. Initialize the achived word collection in case it is None
+                    if let None = self.words.achived {
+                        self.words.achived = Some(HashMap::new());
+                    }
+                    // 3. Add the word into the achived
+                    if let Some(achived) = &mut self.words.achived {
+                        achived.insert(String::from(w_id), w);
+                    }
+
+                    // Decrease the backlog volumn of the relevant sentence
+                    if let Some(s_b) = &mut self.sentences.backlog {
+                        if let Some(s) = s_b.get_mut(&s_id) {
+                            s.backlog_volumn -= 1;
+
+                            // If the backlog_volumn becomes 0,
+                            //  the sentence should be moved to the achived collection
+                            if s.backlog_volumn == 0 {
+                                // 1. Remove it from the backlog
+                                let s = s_b.remove(&s_id).unwrap();
+                                // 2. Initialize the achived sentence collection in case it is None
+                                if let None = self.sentences.achived {
+                                    self.sentences.achived = Some(HashMap::new());
+                                }
+                                // 3. Add the sentence into the achived
+                                if let Some(achived) = &mut self.sentences.achived {
+                                    achived.insert(s_id, s);
+                                }
+                            }
+                        }
+                    }
+                    // [todo] export and save err log in case being failed to find the related sentence
+                }
+                return Ok(());
+            }
+        }
+
+        Err("Word of this id can't be found in the backlog.")
+    }
+
+    pub fn level_up_word(&mut self, w_id: &str) -> Result<(), &'static str> {
+        if let Some(words) = &mut self.words.backlog {
+            if let Some(w) = words.get_mut(w_id) {
+                w.level += 1;
+                return Ok(());
+            }
+        }
+
+        Err("Word of this id can't be found in the backlog.")
+    }
+
     pub fn merge<F>(book1: StudyBook, book2: StudyBook, cb: Option<F>) -> StudyBook
     where
         F: Fn(Status, Status),
@@ -324,5 +388,49 @@ mod tests {
         //  we can say these 2 decks are not identical,
         //  i.e. deck generation has randomness
         assert!(!res0 || !res1 || !res2);
+    }
+
+    #[test]
+    fn can_level_up_word() {
+        let mut b = StudyBook::from_article(ARTICLE);
+
+        let w = Word::from("自動車");
+        let w_id = w.id();
+
+        b.level_up_word(&w_id).unwrap();
+
+        assert_eq!(b.words.backlog.unwrap().get(&w_id).unwrap().level, 2);
+    }
+
+    #[test]
+    fn can_level_down_word() {
+        let mut b = StudyBook::from_article(ARTICLE);
+
+        for w in ["工場", "稼働", "停止", "発表"] {
+            b.level_down_word(&Word::from(w).id()).unwrap();
+        }
+
+        let w = Word::from("自動車");
+        let w_id = w.id();
+
+        b.level_down_word(&w_id).unwrap();
+
+        let w_b = b.words.backlog.unwrap();
+        let w_a = b.words.achived.unwrap();
+        let s_b = b.sentences.backlog.unwrap();
+        let s_a = b.sentences.achived.unwrap();
+
+        assert_eq!(w_b.len(), 5);
+        assert_eq!(s_b.len(), 1);
+
+        assert_eq!(w_a.len(), 5);
+        assert_eq!(s_a.len(), 1);
+
+        let w = &w_a.get(&w_id).unwrap();
+        let s_id = &w.sentence_id;
+        let s = s_b.get(s_id).unwrap();
+
+        assert_eq!(w.level, 0);
+        assert_eq!(s.backlog_volumn, 5);
     }
 }
