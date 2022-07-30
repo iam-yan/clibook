@@ -1,6 +1,3 @@
-// <todo> Store the loaded json as bac.json on load, on update?
-// <todo> Store the history logs of inputting article.
-
 use console::Term;
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use std::{
@@ -19,7 +16,7 @@ use learn_jp::{
 // <todo> Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
 
-const SAVE_PATH: &str = ".prod/book2.json";
+const SAVE_PATH: &str = ".prod/book.json";
 
 fn main() {
     // Initialize study_book with either saved book or user's first input,
