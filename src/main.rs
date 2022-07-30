@@ -1,6 +1,3 @@
-// <todo> Store the loaded json as bac.json on load, on update?
-// <todo> Store the history logs of inputting article.
-
 use console::Term;
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use std::{
@@ -10,7 +7,8 @@ use std::{
 };
 
 use learn_jp::{
-    load_study_book, study_book,
+    load_study_book,
+    study_book::{self, status::Status, StudyBook},
     ui::{self, NextStep},
     update_wordbook,
 };
@@ -18,12 +16,12 @@ use learn_jp::{
 // <todo> Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
 
-const SAVE_PATH: &str = ".prod/book2.json";
+const SAVE_PATH: &str = ".prod/book.json";
 
 fn main() {
     // Initialize study_book with either saved book or user's first input,
     //  to get a book with words in the backlog
-    let b = match load_study_book(SAVE_PATH) {
+    let mut b = match load_study_book(SAVE_PATH) {
         Ok(book_opt) => match book_opt {
             // Find saved book -> Check whether there are words in the backlog
             Some(book) => {
@@ -57,11 +55,21 @@ fn main() {
     };
 
     loop {
-        // Report status
-        // x words of y sentences added to your backlog. Now you have m words of n sentences to challenge.
+        // Save
+        if let Err(err) = b.save_json(SAVE_PATH) {
+            println!("Oops something went wrong: {}.", err);
+            process::exit(1);
+        };
+
+        // Report the initial status
+        let s = b.get_status();
+        println!(
+            "Now we have {} words of {} sentences to work on.",
+            s.w_backlog, s.s_backlog
+        );
 
         // Ask for the next step
-        print!("Should we start the learning?");
+        print!("Should we start learning?");
         match ui::study_or_add_more() {
             Ok(decision) => {
                 // Response based on users' decision
@@ -69,11 +77,19 @@ fn main() {
                 match decision {
                     NextStep::AddMore => {
                         // Add more
-                        print!("Ok.");
                         let input: String = ui::request_raw_content().unwrap();
-
                         // Merge
-                        // and repeat the loop
+                        b = StudyBook::merge(
+                            b,
+                            StudyBook::from_article(&input),
+                            Some(|s_add: Status, _| {
+                                println!(
+                                    "You have just added {} words of {} new sentences.",
+                                    s_add.w_backlog, s_add.s_backlog
+                                )
+                            }),
+                        );
+                        // and then repeat the loop
                     }
                     NextStep::Study => {
                         break;
