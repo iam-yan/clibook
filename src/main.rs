@@ -64,7 +64,7 @@ fn main() {
         );
 
         // Ask for the next step
-        print!("Should we start learning?");
+        println!("Should we start learning?");
         match ui::study_or_add_more() {
             Ok(decision) => {
                 // Response based on users' decision
