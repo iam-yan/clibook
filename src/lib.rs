@@ -2,27 +2,9 @@ mod parser;
 pub mod study_book;
 pub mod ui;
 
-use serde::{Deserialize, Serialize};
 use study_book::StudyBook;
 
 use std::{fs, io::ErrorKind};
-
-pub fn update_wordbook(input: &str, path: &str) {
-    // Generate book from input content.
-    let b = study_book::StudyBook::from_article(input);
-
-    //
-    match fs::read_to_string(path) {
-        Ok(content) => {
-            // convert content to book
-            // merge 2 books
-            // save merged book
-        }
-        _ => {
-            fs::write(path, "hi").unwrap();
-        }
-    }
-}
 
 pub fn load_study_book(path: &str) -> Result<Option<StudyBook>, &'static str> {
     let res = match fs::read_to_string(path) {
@@ -44,7 +26,6 @@ mod tests {
     use super::*;
 
     const FILE_NOT_EXIST: &str = ".test/ghost.json";
-    const I_AM_HERE_TXT: &str = ".test/iamhere.txt";
     const VALID_BOOK_JSON: &str = ".test/study_book.json";
 
     #[test]

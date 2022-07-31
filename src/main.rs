@@ -1,24 +1,19 @@
-use console::Term;
-use dialoguer::{theme::ColorfulTheme, Input, Select};
-use std::{
-    fs,
-    io::{self, ErrorKind},
-    process,
-};
+use std::process;
 
 use learn_jp::{
     load_study_book,
     study_book::{self, status::Status, StudyBook},
     ui::{self, NextStep},
-    update_wordbook,
 };
 
-// <todo> Introduce the concept of user to bring some customization.
+// [todo] Introduce the concept of user to bring some customization.
 const USER_NAME: &str = "Yan";
 
 const SAVE_PATH: &str = ".prod/book.json";
 
 fn main() {
+    println!("Hi, {}", USER_NAME);
+
     // Initialize study_book with either saved book or user's first input,
     //  to get a book with words in the backlog
     let mut b = match load_study_book(SAVE_PATH) {
