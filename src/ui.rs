@@ -50,7 +50,7 @@ pub fn exam_word(word_entry: &WordEntry) -> Result<bool, &'static str> {
     let w = word_entry.word.word();
     let h = &word_entry.hiragana;
 
-    let q = format!("What's the kanji of hiragana {}?", h);
+    let q = format!("What's the kanji for {}?", h);
 
     match Input::<String>::with_theme(&ColorfulTheme::default())
         .with_prompt(&q)

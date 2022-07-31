@@ -99,7 +99,7 @@ fn main() {
     }
 
     // Now book is ready, let's start learning!
-    println!("Ok. Let's start learning.");
+    println!("Ok. Let's do some exercises.");
 
     loop {
         // [todo] Force input when no deck can be created,
