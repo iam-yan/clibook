@@ -103,54 +103,68 @@ fn main() {
         }
     }
 
-    // Now book is ready, let's study!
+    // Now book is ready, let's start learning!
+    println!("Ok. Let's start learning.");
 
-    // // Initial check on whether we've got saved book...
-    // match fs::read_to_string(data_file) {
-    //     // ...- Yes -> create book and decks from the file.
-    //     Ok(content) => {
-    //         println!("Aha you are back, {}. My good boy!", user);
-    //     }
-    //     Err(err) => match err.kind() {
-    //         // ...- No -> create book and decks from the first input.
-    //         ErrorKind::NotFound => {
-    //             // 1. Ask for input...
-    //             println!("Hey man, a great adventure is waiting for you. But first, let's create you the first book.");
-    //             println!("But first, let's create you the first book.");
-    //             println!("No worries it's easy. Just throw me something in the wizard format.");
+    loop {
+        // [todo] Force input when no deck can be created,
+        //  i.e. there is no words in the backlog
 
-    //             let mut input = String::new();
+        // Generate a random study deck
+        let d = b.get_deck().unwrap();
 
-    //             loop {
-    //                 // 2. Get input and store it in a variable.
-    //                 io::stdin().read_line(&mut input).unwrap_or_else(|err| {
-    //                     // Handle the error of reading input.
-    //                     eprintln!("Failed to read line with err: {}", err);
-    //                     process::exit(1);
-    //                 });
+        // Test users with each word
+        for w in d {
+            let w_id = &w.word.id();
 
-    //                 let input = input.trim(); // Clean leading and trailing whitespace.
+            // Get and store senetence first, because by answering the question correctly,
+            //  the sentence could be moved to achived
+            let s_id = &w.sentence_id;
+            let s = if let Some(s_map) = &b.sentences.backlog {
+                s_map.get(s_id).unwrap().sentence.sentence()
+            } else {
+                ""
+            };
+            // The book will be brorrowed as a mut ref during level changing,
+            //  so we store the s as a local var to drop the immutable ref of book
+            let s = String::from(s);
 
-    //                 // [ ] Convert it to book
-    //                 // [ ] Succeed -> Save input into book.txt
-    //                 // [ ] Failed -> Ask for input again.
-    //                 update_wordbook(input, "wordbook.txt");
-    //             }
-    //         }
-    //         // ...- Handle error on checking the file.
-    //         _ => {}
-    //     },
-    // }
+            match ui::exam_word(&w) {
+                Ok(correct) => {
+                    let (res, msg) = if correct {
+                        (b.level_down_word(&w_id), String::from("Correct!"))
+                    } else {
+                        (
+                            b.level_up_word(&w_id),
+                            format!("Oops, the answer should be {}.", &w.word.word()),
+                        )
+                    };
 
-    // A. Initial check
-    //      - No -> Ask for first sentences input -> B.
-    //      - Yes -> Read the file to create book and decks
+                    // Handle err of changing level
+                    if let Err(err) = res {
+                        println!("Oops something went wrong: {}.", err);
+                        process::exit(1);
+                    } else {
+                        // Print message based on whether users answer the test correctly
+                        println!("{}", &msg);
 
-    // B. Take string of sentences and convert it to book and decks.
-    //      1. String -> Book * Decks
-    //      2. Hanlde invalid input
-
-    // C. Save book as json
-    //      1. No file -> Create file first
-    //      2. Save as json file
+                        // Print all the relevant info of this word for user to memorize
+                        println!(
+                            "Kanji \"{}\" is from the sentence \"{}\"",
+                            &w.word.word(),
+                            &s
+                        );
+                        println!("Hiragana: {}", &w.hiragana);
+                        if let Some(anno) = &w.annotation {
+                            println!("Annotation: {}", anno);
+                        }
+                    }
+                }
+                Err(err) => {
+                    println!("Oops something went wrong: {}.", err);
+                    process::exit(1);
+                }
+            }
+        }
+    }
 }

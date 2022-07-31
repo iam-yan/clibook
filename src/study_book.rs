@@ -94,9 +94,9 @@ impl StudyBook {
         }
     }
 
-    pub fn get_deck(&self) -> Option<Vec<&WordEntry>> {
+    pub fn get_deck(&self) -> Option<Vec<WordEntry>> {
         if let Some(backlog) = &self.words.backlog {
-            let mut deck: Vec<&WordEntry> = backlog.values().collect();
+            let mut deck: Vec<WordEntry> = backlog.values().cloned().collect(); // how to collect a non ref vec?
 
             // Shuffle the deck
             let mut rng = rand::thread_rng();
