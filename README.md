@@ -1,8 +1,8 @@
-# wordbook
+# clibook
 
 ![lang-cli_rc1](https://user-images.githubusercontent.com/48427014/182272373-33de8c40-c9a9-43ab-af71-041698ccb010.gif)
 
-A CLI app for learning language in the terminal.
+A CLI wordbook app for learning language in the terminal.
 
 To use:
 
@@ -10,4 +10,5 @@ To use:
 - Pull the repo
 - Run `cargo run`
 
-Enjoy. And let me know if you have any feedback.
+Looking forward to any feedback.
+Have fun.
